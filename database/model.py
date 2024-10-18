@@ -1,6 +1,7 @@
 # %%
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, Enum
 from sqlalchemy.ext.declarative import declarative_base
+from database.enum import User_Role
 
 Base = declarative_base()
 
@@ -11,5 +12,8 @@ class Book(Base):
     username = Column(String, unique=True, nullable=False)
     email = Column(String, nullable=False)
     password = Column(String, nullable=False)
-    role = Column(String, )
+    role = Column(Enum(User_Role))
+
+
+
 # %%

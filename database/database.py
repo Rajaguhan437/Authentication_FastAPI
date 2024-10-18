@@ -8,11 +8,6 @@
 # %% Import packages
 from database.model import Base
 
-# import os
-# os.chdir("/home/ib/Projects/Authentication_FastAPI/Authentication_FastAPI/")
-
-# print(os.getcwd())
-
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker 
 
