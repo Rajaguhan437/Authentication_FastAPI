@@ -5,7 +5,7 @@ from database.enum import User_Role
 
 Base = declarative_base()
 
-class Book(Base):
+class User(Base):
     __tablename__ = "Users"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True, nullable=False)
@@ -13,7 +13,6 @@ class Book(Base):
     email = Column(String, nullable=False)
     password = Column(String, nullable=False)
     role = Column(Enum(User_Role))
-
 
 
 # %%

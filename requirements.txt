@@ -3,5 +3,10 @@ uvicorn
 sqlalchemy
 psycopg2-binary
 pydantic
+pydantic[email]
 nest-asyncio
 pickleshare
+PyJWT
+python-decouple
+pyOpenSSL
+passlib

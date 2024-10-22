@@ -1,6 +1,8 @@
 from enum import Enum
+from pydantic import BaseModel
 
-class User_Role(Enum):
-    Admin = 1
-    serviceProvider = 2
-    Customer = 3
+class User_Role(str,Enum):
+    Admin = "Admin"
+    SERVICEPROVIDER = "Service Provider"
+    CUSTOMER = "Customer"
+
