@@ -4,7 +4,7 @@
 DATABASE = {
     'host': 'localhost',
     'port': 5432,
-    'name': 'auth_db',
+    'name': 'local_db',
     'user': 'postgres',
     'password': '12345',
 }

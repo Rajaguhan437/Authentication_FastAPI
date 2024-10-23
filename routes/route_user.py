@@ -47,7 +47,7 @@ def Sign_Up(
         db.commit()
         db.refresh(userReg)
         tokens = encodeJWT(userDict["email"], userDict["password"], userDict["role"])
-        msg = JSONResponse(**tokens, status_code=200)
+        msg = {"status_code":200, **tokens}
         #msg.set_cookie(key="refresh_token", value=tokens["refresh_token"])
         return msg
     except Exception as e:

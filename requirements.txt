@@ -10,3 +10,4 @@ PyJWT
 python-decouple
 pyOpenSSL
 passlib
+alembic
