@@ -1,0 +1,9 @@
+2024-10-24 12:13:03,397 - INFO - {'url': '/docs', 'method': 'GET'}
+2024-10-24 12:13:04,448 - INFO - {'url': '/favicon.ico', 'method': 'GET'}
+2024-10-24 12:13:20,575 - INFO - {'url': '/docs', 'method': 'GET'}
+2024-10-24 12:13:20,795 - INFO - {'url': '/favicon.ico', 'method': 'GET'}
+2024-10-24 12:13:20,941 - INFO - {'url': '/docs', 'method': 'GET'}
+2024-10-24 12:13:21,135 - INFO - {'url': '/favicon.ico', 'method': 'GET'}
+2024-10-24 12:21:30,676 - INFO - {'url': '/docs', 'method': 'GET'}
+2024-10-24 12:23:02,516 - INFO - {'url': '/openapi.json', 'method': 'GET'}
+2024-10-24 12:23:33,437 - INFO - {'url': '/user/details/', 'method': 'GET'}
