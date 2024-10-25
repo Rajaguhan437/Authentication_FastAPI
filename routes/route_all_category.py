@@ -7,6 +7,7 @@ from database.model import  Category, Sub_Category, User
 from auth.jwt_handler import decodeJWT
 from sqlalchemy import desc
 from pprint import pprint
+from routes.route_user import blacklist_token_check
 
 router = APIRouter(
     prefix="/All-category",
@@ -66,6 +67,7 @@ def Create_subCategory(
     description="Creating New Category of Sub-Category",
     dependencies=[Depends(JWTBearer())]
 )
+@blacklist_token_check
 def read_allCategory(
     request: Request,
     db: Session = Depends(get_db),

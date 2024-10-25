@@ -68,3 +68,9 @@ class Sub_Category(Details):
     cat_id = Column(Integer, ForeignKey('category.cat_id'))
     sub_cat_name = Column(String)
 
+
+class BlackListed_Tokens(Base):
+    __tablename__ = "blacklisted_token"
+
+    token_id = Column(Integer, primary_key=True, index=True, autoincrement=True, nullable=False)
+    token = Column(String, unique=True, nullable=False)

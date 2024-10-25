@@ -1,14 +1,17 @@
 from passlib.context import CryptContext
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, Request, Cookie, Response
 from sqlalchemy.orm import Session
 from database.database import get_db
-from database.model import User
+from database.model import User, BlackListed_Tokens
 from database.schema import UserCreate, UserID, UserLogin
 from auth.jwt_handler import encodeJWT, decodeJWT
 from auth.jwt_bearer import JWTBearer
 from fastapi.responses import JSONResponse
 import base64, json, time
 from datetime import datetime, timedelta
+from functools import wraps
+from typing import Callable
+
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -24,6 +27,29 @@ router = APIRouter(
     tags=["Users"],
     responses={404: {"description": "Not found"}},
 )
+
+def blacklist_token_check(func: Callable) -> Callable:
+    @wraps(func)
+    async def wrapper(
+        request: Request,
+        db: Session = Depends(get_db),
+        *args, **kwargs
+    ):
+        token = request.headers.get("authorization")[7:]
+        if not token:
+            raise HTTPException(status_code=401, detail="Authorization header missing")
+        
+        is_blacklisted = db.query(BlackListed_Tokens).filter(BlackListed_Tokens.token == token).first()
+        
+        if is_blacklisted:
+            if is_blacklisted.token == token:
+                raise HTTPException(status_code=403, detail="User logged out. Please log in again.")
+        try:    
+            return await func(request=request, db=db, *args, **kwargs)
+        except Exception as e:
+            raise HTTPException(status_code=403, detail=str(e))
+    return wrapper
+
 
 @router.post(
         "/signup/",
@@ -53,7 +79,6 @@ def Sign_Up(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.get(
     "/details/",
     response_model=list[UserID],
@@ -61,7 +86,9 @@ def Sign_Up(
     description="Get a list of all Users",
     dependencies=[Depends(JWTBearer())]
 )
-def read_users(
+@blacklist_token_check
+async def read_users(
+    request: Request,
     skip: int = 0, 
     limit: int = 100, 
     db: Session = Depends(get_db)
@@ -79,14 +106,18 @@ def read_users(
 )
 def check_users(
     user: UserLogin,
-    db: Session = Depends(get_db)
+    response: Response,
+    db: Session = Depends(get_db),
 ):
     try:
         userDetail = db.query(User).filter(User.username == user.username, User.role == user.role).first()
         if userDetail:
             if userDetail.username == user.username and verify_password(user.password, userDetail.password) and userDetail.role == user.role:
                 tokens = encodeJWT(user.username, user.password ,user.role)
-                return {"status_code":200, **tokens}
+                response.set_cookie(key="access_token", value=tokens['access_token'])
+                response.set_cookie(key="refresh_token", value=tokens['refresh_token'])
+                response.status_code=200
+                return {"Response":response}
         else:   
             raise HTTPException(status_code=404, detail="Invalid Login Details")
     except Exception as e:
@@ -125,9 +156,10 @@ async def refresh_token(
     dependencies=[Depends(JWTBearer())]
 )
 async def Logout_Users(
-    access_token: str,
+    request: Request,
     db: Session = Depends(get_db)
 ):
+    access_token = request.headers.get("authorization")[7:]
     if not access_token:
         raise HTTPException(status_code=401, detail="No Access token")
     
@@ -135,6 +167,15 @@ async def Logout_Users(
     if not decoded_token:
         raise HTTPException(status_code=401, detail="Invalid Access token")
     
-    decoded_token["exp"] = time.time() - 60 * 20
-    new_token = encodeJWT(decoded_token["username"], decoded_token["password"], decoded_token["role"], decoded_token["exp"], decoded_token["exp"])
-    return {"status_code":200, "msg": "Logged Out Successfully", "new_token":new_token}  
+    blacklistedToken = BlackListed_Tokens(token=access_token)
+    db.add(blacklistedToken)
+    db.commit()
+    db.refresh(blacklistedToken)
+    
+    #decoded_token["exp"] = time.time() - 60 * 20
+    #new_token = encodeJWT(decoded_token["username"], decoded_token["password"], decoded_token["role"], decoded_token["exp"], decoded_token["exp"])
+    return {
+        "status_code":200, 
+        "msg": "Logged Out Successfully", 
+        #"new_token":new_token
+    }  
