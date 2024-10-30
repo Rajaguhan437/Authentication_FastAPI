@@ -11,3 +11,10 @@ python-decouple
 pyOpenSSL
 passlib
 alembic
+pandas
+pandas-profiling
+ydata-profiling
+jupyter
+jupyter-notebook
+jupyter-lab
+openpyxl
