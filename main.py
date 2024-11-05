@@ -3,12 +3,13 @@ from fastapi.staticfiles import StaticFiles
 # from fastapi.routing import APIRoute
 # from starlette.requests import Request
 
-from routes import route_user, route_category, route_sub_category, route_all_category
+from routes import route_user, route_category, route_sub_category, route_all_category, route_websocket
 from database.model import Base
 from database.database import engine
 
 from logger import logger
 import time
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -24,6 +25,8 @@ app.include_router(route_user.router)
 app.include_router(route_category.router)
 app.include_router(route_sub_category.router)
 app.include_router(route_all_category.router)
+app.include_router(route_websocket.router)
+
 
 @app.middleware('http')
 async def logger_middleware(request: Request, call_next, cookie = Cookie(None)):

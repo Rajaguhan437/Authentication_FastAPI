@@ -18,3 +18,7 @@ jupyter
 jupyter-notebook
 jupyter-lab
 openpyxl
+python-multipart
+aiofiles
+websocket
+websockets

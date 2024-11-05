@@ -1,5 +1,5 @@
 from passlib.context import CryptContext
-from fastapi import APIRouter, Depends, HTTPException, Body, Request, Cookie, Response
+from fastapi import APIRouter, Depends, HTTPException, Body, Request, Cookie, Response, File, UploadFile, status
 from sqlalchemy.orm import Session
 from database.database import get_db
 from database.model import User, BlackListed_Tokens
@@ -7,11 +7,12 @@ from database.schema import UserCreate, UserID, UserLogin
 from auth.jwt_handler import encodeJWT, decodeJWT
 from auth.jwt_bearer import JWTBearer
 from fastapi.responses import JSONResponse
-import base64, json, time
-from datetime import datetime, timedelta
 from functools import wraps
 from typing import Callable
-
+import pandas as pd
+import aiofiles
+from pprint import pprint
+import io, json, time
 
 password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -25,7 +26,7 @@ def verify_password(password: str, hashed_pass: str) -> bool:
 router = APIRouter(
     prefix="/user",
     tags=["Users"],
-    responses={404: {"description": "Not found"}},
+    responses={404: {"description": "Not found"}}, # need to check
 )
 
 def blacklist_token_check(func: Callable) -> Callable:
@@ -179,3 +180,59 @@ async def Logout_Users(
         "msg": "Logged Out Successfully", 
         #"new_token":new_token
     }  
+
+
+@router.post(
+    "/upload_file/",
+    description="To read a file"
+)
+async def upload_file_with_ROM(
+    file: UploadFile = File(...)
+):
+    filename = file.filename
+    if filename[-5:] == '.xlsx':
+        
+        async with aiofiles.open("/home/rajaguhan/Projects/Authentication_FastAPI/static/temp/"+filename ,'wb') as out_file:
+            content = await file.read()  # async read
+            await out_file.write(content)  # async write
+
+        df = pd.read_excel("/home/rajaguhan/Projects/Authentication_FastAPI/static/temp/"+filename, index_col="S_No.")
+        json_data = df.to_dict(orient='index')
+        
+        # pprint(json_data)
+        return JSONResponse(content={
+            "message": "Converted To JSON Successfully", 
+            "data":json_data
+        }, status_code=status.HTTP_200_OK)
+    else:
+        raise HTTPException(status_code=422, detail="Only Excel Files can be uploaded")
+
+
+@router.post(
+    "/upload_file_fast/",
+    description="To read a file"
+)
+async def upload_file_without_ROM(
+    file: UploadFile = File(...)
+):
+    filename = file.filename
+    if filename[-5:] == '.xlsx':
+        
+        bio = io.BytesIO(await file.read()) 
+        df = pd.read_excel(bio, index_col="S_No.")
+
+        df["created_at_x"] = df["created_at_x"].apply(lambda x: x.isoformat())
+        df["updated_at_x"] = df["updated_at_x"].apply(lambda x: x.isoformat())
+        df["created_at_y"] = df["created_at_y"].apply(lambda x: x.isoformat())
+        df["updated_at_y"] = df["updated_at_y"].apply(lambda x: x.isoformat())
+
+        json_data = df.to_dict(orient='index')
+        
+        # pprint(json_data)
+        return JSONResponse(content={
+            "message": "Converted To JSON Successfully", 
+            "data":json_data
+        }, status_code=status.HTTP_200_OK)
+    else:
+        raise HTTPException(status_code=422, detail="Only Excel Files can be uploaded")
+    

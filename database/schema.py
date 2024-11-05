@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, EmailStr
 from database.enum import User_Role
 from datetime import datetime
 from typing import List
+
 # %% Define the Pydantic model
 class UserCreate(BaseModel):
     username: str = Field(..., description="The username of the user", min_length=1, pattern="[^ ]+", example="username")

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room</title>
+    <style>
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            color: white;
+            max-width: 300px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            animation: slideIn 0.5s ease-out;
+            background-color: #2196F3;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .info { background-color: #2196F3; }
+        .success { background-color: #4CAF50; }
+        .warning { background-color: #FF9800; }
+        .error { background-color: #f44336; }
+        
+        #chat-container {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <h2>Chat Room</h2>
+        <div id="messages"></div>
+        <input type="text" id="messageInput" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        let client_id = Math.floor(Math.random() * 1000);
+        let ws = new WebSocket(`ws://${window.location.host}/chat/${client_id}`);
+        
+        ws.onmessage = function(event) {
+            const data = event.data;
+                showNotification(data);
+                // Handle regular chat messages
+                const messages = document.getElementById('messages');
+                messages.innerHTML += `<p>${data}</p>`;
+        };
+        
+        function showNotification(notification) {
+            const notif = document.createElement('div');
+            notif.className = `notification`;
+            notif.innerHTML = `
+                <strong>Notification</strong><br>
+                ${notification}
+            `;
+            
+            document.body.appendChild(notif);
+            
+            // Remove notification after 5 seconds
+            setTimeout(() => {
+                notif.style.opacity = '0';
+                setTimeout(() => notif.remove(), 500);
+            }, 5000);
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            ws.send(input.value);
+            input.value = '';
+        }
+    </script>
+</body>
+</html>
